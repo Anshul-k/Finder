@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   bookSearchURL,
   classics,
@@ -15,27 +15,23 @@ const Recomendations = () => {
   const [kidsBooks, setKidsBooks] = useState([]);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetchCategoryBooks(trending, "trendingBooks", settrendingBooks);
-    fetchCategoryBooks(classics, "classicsBooks", setClassicsBooks);
-    fetchCategoryBooks(romance, "romanceBooks", setRomanceBooks);
-    fetchCategoryBooks(kids, "kidsBooks", setKidsBooks);
-  }, []);
-
-  const fetchCategoryBooks = (booksArray, storageKey, setCategory) => {
-    const storedBooks = sessionStorage.getItem(storageKey);
-    if (storedBooks) {
-      setCategory(JSON.parse(storedBooks));
-    } else {
-      booksArray.forEach((book) => {
-        fetchBook({
-          bookName: book,
-          setCategory,
-          storageKey,
+  const fetchCategoryBooks = useCallback(
+    (booksArray, storageKey, setCategory) => {
+      const storedBooks = sessionStorage.getItem(storageKey);
+      if (storedBooks) {
+        setCategory(JSON.parse(storedBooks));
+      } else {
+        booksArray.forEach((book) => {
+          fetchBook({
+            bookName: book,
+            setCategory,
+            storageKey,
+          });
         });
-      });
-    }
-  };
+      }
+    },
+    []
+  );
 
   const fetchBook = async ({ bookName, setCategory, storageKey }) => {
     try {
@@ -56,6 +52,13 @@ const Recomendations = () => {
       setError("Failed to load book data. Please try again later.");
     }
   };
+
+  useEffect(() => {
+    fetchCategoryBooks(trending, "trendingBooks", settrendingBooks);
+    fetchCategoryBooks(classics, "classicsBooks", setClassicsBooks);
+    fetchCategoryBooks(romance, "romanceBooks", setRomanceBooks);
+    fetchCategoryBooks(kids, "kidsBooks", setKidsBooks);
+  }, [fetchCategoryBooks]);
 
   return (
     <div className="p-2 w-full">
